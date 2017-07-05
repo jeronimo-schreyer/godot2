@@ -45,9 +45,33 @@
 #include "servers/physics_2d/physics_2d_server_sw.h"
 #include "servers/physics_2d/physics_2d_server_wrap_mt.h"
 #include "main/input_default.h"
-#include <dlog.h>
 
-class OS_Tizen : public OS {
+#include <dlog.h>
+#include <Elementary.h>
+
+
+
+typedef struct appdata {
+	Evas_Object *win;
+	Evas_Object *conform;
+	Evas_Object *label;
+	Ecore_Animator *ani;
+
+
+	Evas_GL *evasgl;
+	Evas_GL_Context *ctx;
+	Evas_GL_Surface *sfc;
+	Evas_GL_Config  *cfg;
+	Evas_Object     *img;
+	Evas_Coord       surface_w;
+	Evas_Coord       surface_h;
+	Eina_Bool        mouse_down : 1;
+	Eina_Bool        initialized : 1;
+	int argc;
+	char* argv[];
+} appdata_s;
+
+class OS_Tizen : public OS_Unix {
 
 	Rasterizer *rasterizer;
 	VisualServer *visual_server;
@@ -76,6 +100,9 @@ class OS_Tizen : public OS {
 
 	void _process_events();
 
+	int argc;
+	//char* argv[];
+
 protected:
 
 	virtual int get_video_driver_count() const;
@@ -93,7 +120,10 @@ protected:
 
 
 public:
-
+	appdata_s ad;
+	void step();
+	bool _create_tizen_app();
+	void set_args(int p_argc, char* p_argv[]);
 	virtual String get_name();
 
 	virtual void set_cursor_shape(CursorShape p_shape);
@@ -128,6 +158,7 @@ public:
 	virtual VideoMode get_video_mode(int p_screen=0) const;
 	virtual void get_fullscreen_mode_list(List<VideoMode> *p_list,int p_screen=0) const;
 
+	virtual bool has_touchscreen_ui_hint() const;
 
 	virtual int get_screen_count() const;
 	virtual int get_current_screen() const;
@@ -159,28 +190,30 @@ public:
 
 	virtual void set_use_vsync(bool p_enable);
 	virtual bool is_vsync_enabled() const;
-
+	virtual String get_resource_dir() const;
+	virtual String get_data_dir() const;
 	void run();
+	void resize(Size2 p_size);
 
 	OS_Tizen();
 	~OS_Tizen();
 
 	// OS interface
-protected:
-	void initialize_core();
-	void finalize_core();
+//protected:
+//	void initialize_core();
+//	void finalize_core();
 
 public:
 	void vprint(const char *p_format, va_list p_list, bool p_stderr);
-	String get_stdin_string(bool p_block);
-	Error execute(const String &p_path, const List<String> &p_arguments, bool p_blocking, ProcessID *r_child_id, String *r_pipe, int *r_exitcode);
-	Error kill(const ProcessID &p_pid);
-	bool has_environment(const String &p_var) const;
-	String get_environment(const String &p_var) const;
-	Date get_date(bool local) const;
-	Time get_time(bool local) const;
-	TimeZoneInfo get_time_zone_info() const;
-	void delay_usec(uint32_t p_usec) const;
-	uint64_t get_ticks_usec() const;
+	//String get_stdin_string(bool p_block);
+//	Error execute(const String &p_path, const List<String> &p_arguments, bool p_blocking, ProcessID *r_child_id, String *r_pipe, int *r_exitcode);
+//	Error kill(const ProcessID &p_pid);
+//	bool has_environment(const String &p_var) const;
+//	String get_environment(const String &p_var) const;
+//	Date get_date(bool local) const;
+//	Time get_time(bool local) const;
+//	TimeZoneInfo get_time_zone_info() const;
+//	void delay_usec(uint32_t p_usec) const;
+
 };
 #endif

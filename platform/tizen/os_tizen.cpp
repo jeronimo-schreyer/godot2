@@ -29,6 +29,7 @@
 #include "drivers/unix/memory_pool_static_malloc.h"
 #include "os/memory_pool_dynamic_static.h"
 #include "servers/visual/visual_server_raster.h"
+#include "servers/visual/rasterizer_dummy.h"
 #include "drivers/gles2/rasterizer_gles2.h"
 #include "drivers/unix/thread_posix.h"
 #include "drivers/unix/semaphore_posix.h"
@@ -46,7 +47,6 @@
 #include "servers/physics/physics_server_sw.h"
 #include "errno.h"
 #include <app.h>
-#include <Elementary.h>
 #include <system_settings.h>
 #include <efl_extension.h>
 
@@ -57,40 +57,61 @@
 #define LOG_TAG "godot"
 
 #if !defined(PACKAGE)
-#define PACKAGE "org.example.godot"
+#define PACKAGE "org.godotengine.godot"
 #endif
-
-
-
 
 OS_Tizen::~OS_Tizen() {
 
 }
 
+void OS_Tizen::step() {
+	static int step = 0;
+	evas_gl_make_current(ad.evasgl, ad.sfc, ad.ctx);
+	if (step == 0) {
+		printf("step 0");
+		Error err = Main::setup(ad.argv[0],ad.argc-1,&ad.argv[1]);
+		ERR_FAIL_COND(err != OK);
+		Main::start();
+		force_quit = false;
+		ERR_FAIL_COND(!main_loop);
+		main_loop->init();
+		step++;
+		return;
+	}
+	//TODO Event processing
+	if (Main::iteration()) {
+		ERR_FAIL();
+		//TODO break out of main loop
+	}
+}
+
 void OS_Tizen::run() {
 	print_line("TIZEN: starting main loop");
-	force_quit = false;
-	if (!main_loop)
-		return;
-	main_loop->init();
 
 
-	while (!force_quit) {
-		//TODO: event processing
+//	while (!force_quit) {
+//		//TODO: event processing
 
-		if (Main::iteration())
-			break;
-	}
+//		if (Main::iteration())
+//			break;
+//	}
 	main_loop->finish();
+}
+
+void OS_Tizen::resize(Size2 p_size) {
+	//print_line(String("resize callback, new size: ") + p_size);
+	printf("resize callback, new size: (%d,%d)\n", p_size.x, p_size.y);
+	OS::VideoMode vm = current_videomode;
+	vm.width = p_size.width;
+	vm.height = p_size.height;
+	set_video_mode(vm);
 }
 
 OS_Tizen::OS_Tizen() {
 	//print_line("OS_TIZEN INIT");
 	print("OS constructor");
-	//print_line("but this doesn't work???");
 	AudioDriverManagerSW::add_driver(&audio_driver_dummy);
 	event_id = 0;
-
 }
 
 void OS_Tizen::delete_main_loop() {
@@ -112,7 +133,7 @@ const char *OS_Tizen::get_video_driver_name(int p_driver) const {
 }
 
 OS::VideoMode OS_Tizen::get_default_video_mode() const {
-	return OS::VideoMode();
+	return OS::VideoMode(ad.surface_w, ad.surface_h, true, false, false);
 }
 
 int OS_Tizen::get_audio_driver_count() const {
@@ -127,16 +148,28 @@ void OS_Tizen::initialize(const VideoMode &p_desired, int p_video_driver, int p_
 	dlog_print(DLOG_ERROR, LOG_TAG, "INITIALIZE GODOT!!\n");
 	//AudioDriverManagerSW::add_driver()
 #ifdef GLES2_ENABLED
-	rasterizer = memnew(RasterizerGLES2(false, true, true, false));
+	rasterizer = memnew(RasterizerGLES2(false, false, false));
 	//rasterizer->set_force_16_bits_fbo(use_16bits_fbo);
 	visual_server = memnew(VisualServerRaster(rasterizer));
+#else
+	rasterizer = memnew(RasterizerDummy);
+	visual_server = memnew(VisualServerRaster(rasterizer));
+#endif
+	ERR_FAIL_COND(!visual_server);
 	visual_server->init();
 	visual_server->cursor_set_visible(false, 0);
-#endif
 
+	current_videomode = p_desired;
+	AudioDriverManagerSW::get_driver(p_audio_driver)->set_singleton();
+	if (AudioDriverManagerSW::get_driver(p_audio_driver)->init() != OK) {
+		ERR_PRINT("Initializing audio failed.");
+	}
 	sample_manager = memnew(SampleManagerMallocSW);
-
-
+	audio_server = memnew(AudioServerSW(sample_manager));
+	spatial_sound_server = memnew( SpatialSoundServerSW );
+	spatial_sound_server->init();
+	spatial_sound_2d_server = memnew( SpatialSound2DServerSW );
+	spatial_sound_2d_server->init();
 	physics_server = memnew(PhysicsServerSW);
 	physics_server->init();
 	physics_2d_server = Physics2DServerWrapMT::init_server<Physics2DServerSW>();
@@ -185,6 +218,15 @@ void OS_Tizen::set_main_loop(MainLoop *p_main_loop) {
 	input->set_main_loop(p_main_loop);
 }
 
+bool OS_Tizen::_create_tizen_app() {
+
+}
+
+void OS_Tizen::set_args(int p_argc, char *p_argv[]) {
+	//argc = p_argc;
+	//*argv = *p_argv;
+}
+
 String OS_Tizen::get_name() {
 	return "Tizen";
 }
@@ -226,7 +268,17 @@ MainLoop *OS_Tizen::get_main_loop() const {
 }
 
 bool OS_Tizen::can_draw() const {
+	return true; //FIXME
+}
 
+String OS_Tizen::get_resource_dir() const {
+
+	return app_get_resource_path();
+	//	return "/"; //Tizen has it's own filesystem for resources inside the TPK
+}
+
+String OS_Tizen::get_data_dir() const {
+	return app_get_data_path();
 }
 
 void OS_Tizen::set_clipboard(const String &p_text) {
@@ -238,11 +290,11 @@ String OS_Tizen::get_clipboard() const {
 }
 
 void OS_Tizen::release_rendering_thread() {
-
+	//evas_gl_release_current(ad.evasgl,ad.sfc, ad.ctx);
 }
 
 void OS_Tizen::make_rendering_thread() {
-
+	evas_gl_make_current(ad.evasgl, ad.sfc, ad.ctx);
 }
 
 void OS_Tizen::swap_buffers() {
@@ -250,23 +302,27 @@ void OS_Tizen::swap_buffers() {
 }
 
 String OS_Tizen::get_system_dir(SystemDir p_dir) const {
-
+	return "";
 }
 
 Error OS_Tizen::shell_open(String p_uri) {
-
+	return FAILED; //FIXME
 }
 
 void OS_Tizen::set_video_mode(const VideoMode &p_video_mode, int p_screen) {
-
+	current_videomode = p_video_mode;
 }
 
 OS::VideoMode OS_Tizen::get_video_mode(int p_screen) const {
-	return OS::VideoMode(); // TODO
+	return current_videomode;
 }
 
 void OS_Tizen::get_fullscreen_mode_list(List<VideoMode> *p_list, int p_screen) const {
 
+}
+
+bool OS_Tizen::has_touchscreen_ui_hint() const {
+	return true;
 }
 
 int OS_Tizen::get_screen_count() const {
@@ -290,11 +346,11 @@ Size2 OS_Tizen::get_screen_size(int p_screen) const {
 }
 
 int OS_Tizen::get_screen_dpi(int p_screen) const {
-
+	return 294; //FIXME
 }
 
 Point2 OS_Tizen::get_window_position() const {
-
+	return Point2();
 }
 
 void OS_Tizen::set_window_position(const Point2 &p_position) {
@@ -302,7 +358,7 @@ void OS_Tizen::set_window_position(const Point2 &p_position) {
 }
 
 Size2 OS_Tizen::get_window_size() const {
-
+	return Size2(ad.surface_w, ad.surface_h);
 }
 
 void OS_Tizen::set_window_size(const Size2 p_size) {
@@ -354,11 +410,11 @@ void OS_Tizen::alert(const String &p_alert, const String &p_title) {
 }
 
 bool OS_Tizen::is_joy_known(int p_device) {
-
+	return false;
 }
 
 String OS_Tizen::get_joy_guid(int p_device) const {
-
+	return "";
 }
 
 void OS_Tizen::set_context(int p_context) {
@@ -376,68 +432,40 @@ bool OS_Tizen::is_vsync_enabled() const {
 static MemoryPoolStaticMalloc *mempool_static=NULL;
 static MemoryPoolDynamicStatic *mempool_dynamic=NULL;
 
-void OS_Tizen::initialize_core() {
-	//OS_Unix::initialize_core();
-	ThreadPosix::make_default();
-	SemaphorePosix::make_default();
-	MutexPosix::make_default();
-#ifndef NO_NETWORK
-	TCPServerPosix::make_default();
-	StreamPeerTCPPosix::make_default();
-	PacketPeerUDPPosix::make_default();
-	IP_Unix::make_default();
-#endif
+//void OS_Tizen::initialize_core() {
+//	//OS_Unix::initialize_core();
+//	ThreadPosix::make_default();
+//	SemaphorePosix::make_default();
+//	MutexPosix::make_default();
 
-	mempool_static = new MemoryPoolStaticMalloc;
-	mempool_dynamic = memnew(MemoryPoolDynamicStatic);
-}
+//	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_RESOURCES);
+//	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_USERDATA);
+//	FileAccess::make_default<FileAccessUnix>(FileAccess::ACCESS_FILESYSTEM);
+//	//FileAccessBufferedFA<FileAccessUnix>::make_default();
+//	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_RESOURCES);
+//	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_USERDATA);
+//	DirAccess::make_default<DirAccessUnix>(DirAccess::ACCESS_FILESYSTEM);
 
-void OS_Tizen::finalize_core() {
-	if (mempool_dynamic)
-		memdelete(mempool_dynamic);
-	delete mempool_static;
-}
+//#ifndef NO_NETWORK
+//	TCPServerPosix::make_default();
+//	StreamPeerTCPPosix::make_default();
+//	PacketPeerUDPPosix::make_default();
+//	IP_Unix::make_default();
+//#endif
+
+//	mempool_static = new MemoryPoolStaticMalloc;
+//	mempool_dynamic = memnew(MemoryPoolDynamicStatic);
+//}
+
+//void OS_Tizen::finalize_core() {
+//	if (mempool_dynamic)
+//		memdelete(mempool_dynamic);
+//	delete mempool_static;
+//}
 
 void OS_Tizen::vprint(const char *p_format, va_list p_list, bool p_stderr)
 {
 }
 
-String OS_Tizen::get_stdin_string(bool p_block)
-{
-}
 
-Error OS_Tizen::execute(const String &p_path, const List<String> &p_arguments, bool p_blocking, ProcessID *r_child_id, String *r_pipe, int *r_exitcode)
-{
-}
 
-Error OS_Tizen::kill(const ProcessID &p_pid)
-{
-}
-
-bool OS_Tizen::has_environment(const String &p_var) const {
-	return false;
-}
-
-String OS_Tizen::get_environment(const String &p_var) const {
-	return "";
-}
-
-OS::Date OS_Tizen::get_date(bool local) const
-{
-}
-
-OS::Time OS_Tizen::get_time(bool local) const
-{
-}
-
-OS::TimeZoneInfo OS_Tizen::get_time_zone_info() const
-{
-}
-
-void OS_Tizen::delay_usec(uint32_t p_usec) const
-{
-}
-
-uint64_t OS_Tizen::get_ticks_usec() const {
-	return 0;
-}
