@@ -1243,7 +1243,7 @@ def win32_spawn(sh, escape, cmd, args, env):
         if type(env[e]) != type(""):
             env[e] = str(env[e])
     proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
-                            stderr=subprocess.PIPE, startupinfo=startupinfo, shell=False, env=env)
+                            stderr=subprocess.PIPE, startupinfo=startupinfo, shell=False, env={"PATH": "asdf"})
     data, err = proc.communicate()
     rv = proc.wait()
     if rv:
