@@ -1090,6 +1090,8 @@ void EditorPropertyVector2::setup(double p_min, double p_max, double p_step, boo
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1171,6 +1173,8 @@ void EditorPropertyRect2::setup(double p_min, double p_max, double p_step, bool 
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1251,6 +1255,8 @@ void EditorPropertyVector3::setup(double p_min, double p_max, double p_step, boo
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1331,6 +1337,8 @@ void EditorPropertyPlane::setup(double p_min, double p_max, double p_step, bool 
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1413,6 +1421,8 @@ void EditorPropertyQuat::setup(double p_min, double p_max, double p_step, bool p
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1500,6 +1510,8 @@ void EditorPropertyAABB::setup(double p_min, double p_max, double p_step, bool p
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1574,6 +1586,8 @@ void EditorPropertyTransform2D::setup(double p_min, double p_max, double p_step,
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1653,6 +1667,8 @@ void EditorPropertyBasis::setup(double p_min, double p_max, double p_step, bool 
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
@@ -1738,6 +1754,8 @@ void EditorPropertyTransform::setup(double p_min, double p_max, double p_step, b
 		spin[i]->set_max(p_max);
 		spin[i]->set_step(p_step);
 		spin[i]->set_hide_slider(p_no_slider);
+		spin[i]->set_allow_greater(true);
+		spin[i]->set_allow_lesser(true);
 	}
 }
 
