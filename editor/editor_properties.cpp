@@ -2190,7 +2190,8 @@ void EditorPropertyResource::_resource_preview(const String &p_path, const Ref<T
 	}
 }
 
-void EditorPropertyResource::_update_menu() {
+void EditorPropertyResource::_update_menu_items() {
+
 	//////////////////// UPDATE MENU //////////////////////////
 	RES res = get_edited_object()->get(get_edited_property());
 
@@ -2333,6 +2334,11 @@ void EditorPropertyResource::_update_menu() {
 			menu->add_icon_item(icon, vformat(TTR("Convert To %s"), what), CONVERT_BASE_ID + i);
 		}
 	}
+}
+
+void EditorPropertyResource::_update_menu() {
+
+	_update_menu_items();
 
 	Rect2 gt = edit->get_global_rect();
 	menu->set_as_minsize();
@@ -2355,6 +2361,20 @@ void EditorPropertyResource::_sub_inspector_resource_selected(const RES &p_resou
 void EditorPropertyResource::_sub_inspector_object_id_selected(int p_id) {
 
 	emit_signal("object_id_selected", get_edited_property(), p_id);
+}
+
+void EditorPropertyResource::_button_input(const Ref<InputEvent> &p_event) {
+	Ref<InputEventMouseButton> mb = p_event;
+	if (mb.is_valid()) {
+		if (mb->is_pressed() && mb->get_button_index() == BUTTON_RIGHT) {
+			_update_menu_items();
+			Vector2 pos = mb->get_global_position();
+			//pos = assign->get_global_transform().xform(pos);
+			menu->set_as_minsize();
+			menu->set_global_position(pos);
+			menu->popup();
+		}
+	}
 }
 
 void EditorPropertyResource::_open_editor_pressed() {
@@ -2644,6 +2664,7 @@ void EditorPropertyResource::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("drop_data_fw"), &EditorPropertyResource::drop_data_fw);
 	ClassDB::bind_method(D_METHOD("_button_draw"), &EditorPropertyResource::_button_draw);
 	ClassDB::bind_method(D_METHOD("_open_editor_pressed"), &EditorPropertyResource::_open_editor_pressed);
+	ClassDB::bind_method(D_METHOD("_button_input"), &EditorPropertyResource::_button_input);
 }
 
 EditorPropertyResource::EditorPropertyResource() {
@@ -2670,6 +2691,7 @@ EditorPropertyResource::EditorPropertyResource() {
 	preview->set_margin(MARGIN_BOTTOM, -1);
 	preview->set_margin(MARGIN_RIGHT, -1);
 	assign->add_child(preview);
+	assign->connect("gui_input", this, "_button_input");
 
 	menu = memnew(PopupMenu);
 	add_child(menu);
@@ -2678,6 +2700,7 @@ EditorPropertyResource::EditorPropertyResource() {
 	menu->connect("id_pressed", this, "_menu_option");
 	edit->connect("pressed", this, "_update_menu");
 	hbc->add_child(edit);
+	edit->connect("gui_input", this, "_button_input");
 
 	file = NULL;
 	scene_tree = NULL;
