@@ -1816,6 +1816,10 @@ Ref<TextFile> ScriptEditor::_load_text_file(const String &p_path, Error *r_error
 	text_file->set_file_path(local_path);
 	text_file->set_path(local_path, true);
 
+	if (ResourceLoader::get_timestamp_on_load()) {
+		text_file->set_last_modified_time(FileAccess::get_modified_time(path));
+	}
+
 	if (r_error) {
 		*r_error = OK;
 	}
@@ -1844,6 +1848,10 @@ Error ScriptEditor::_save_text_file(Ref<TextFile> p_text_file, const String &p_p
 	}
 	file->close();
 	memdelete(file);
+
+	if (ResourceSaver::get_timestamp_on_save()) {
+		p_text_file->set_last_modified_time(FileAccess::get_modified_time(p_path));
+	}
 
 	_res_saved_callback(sqscr);
 	return OK;
