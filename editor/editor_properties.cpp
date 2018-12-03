@@ -3134,7 +3134,7 @@ bool EditorInspectorDefaultPlugin::parse_property(Object *p_object, Variant::Typ
 		} break;
 		case Variant::ARRAY: {
 			EditorPropertyArray *editor = memnew(EditorPropertyArray);
-			editor->setup(Variant::ARRAY);
+			editor->setup(Variant::ARRAY, p_hint_text);
 			add_property_editor(p_path, editor);
 		} break;
 		case Variant::POOL_BYTE_ARRAY: {
