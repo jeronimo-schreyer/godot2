@@ -5187,12 +5187,6 @@ EditorNode::EditorNode() {
 	top_region->add_child(left_menu_hb);
 	menu_hb->add_child(top_region);
 
-	{
-		Control *sp = memnew(Control);
-		sp->set_custom_minimum_size(Size2(30, 0) * EDSCALE);
-		menu_hb->add_child(sp);
-	}
-
 	file_menu = memnew(MenuButton);
 	file_menu->set_flat(false);
 	file_menu->set_switch_on_hover(true);
@@ -5414,12 +5408,8 @@ EditorNode::EditorNode() {
 	p->add_separator();
 	p->add_icon_item(gui_base->get_icon("Godot", "EditorIcons"), TTR("About"), HELP_ABOUT);
 
-	play_cc = memnew(CenterContainer);
-	play_cc->set_mouse_filter(Control::MOUSE_FILTER_IGNORE);
-	menu_hb->add_child(play_cc);
-
 	play_button_panel = memnew(PanelContainer);
-	play_cc->add_child(play_button_panel);
+	menu_hb->add_child(play_button_panel);
 
 	HBoxContainer *play_hb = memnew(HBoxContainer);
 	play_button_panel->add_child(play_hb);
@@ -5465,11 +5455,6 @@ EditorNode::EditorNode() {
 
 	run_native = memnew(EditorRunNative);
 	play_hb->add_child(run_native);
-	native_play_button = memnew(MenuButton);
-	native_play_button->set_text("NTV");
-	menu_hb->add_child(native_play_button);
-	native_play_button->hide();
-	native_play_button->get_popup()->connect("id_pressed", this, "_run_in_device");
 	run_native->connect("native_run", this, "_menu_option", varray(RUN_PLAY_NATIVE));
 
 	play_scene_button = memnew(ToolButton);
@@ -5498,6 +5483,9 @@ EditorNode::EditorNode() {
 	play_custom_scene_button->set_shortcut(ED_SHORTCUT("editor/play_custom_scene", TTR("Play Custom Scene"), KEY_MASK_CMD | KEY_MASK_SHIFT | KEY_F5));
 #endif
 
+	HBoxContainer *right_menu_hb = memnew(HBoxContainer);
+	menu_hb->add_child(right_menu_hb);
+
 	// Toggle for video driver
 	video_driver = memnew(OptionButton);
 	video_driver->set_flat(true);
@@ -5505,7 +5493,7 @@ EditorNode::EditorNode() {
 	video_driver->set_v_size_flags(Control::SIZE_SHRINK_CENTER);
 	video_driver->connect("item_selected", this, "_video_driver_selected");
 	video_driver->add_font_override("font", gui_base->get_font("bold", "EditorFonts"));
-	menu_hb->add_child(video_driver);
+	right_menu_hb->add_child(video_driver);
 
 	String video_drivers = ProjectSettings::get_singleton()->get_custom_property_info()["rendering/quality/driver/driver_name"].hint_string;
 	String current_video_driver = OS::get_singleton()->get_video_driver_name(OS::get_singleton()->get_current_video_driver());
@@ -5530,9 +5518,6 @@ EditorNode::EditorNode() {
 	gui_base->add_child(video_restart_dialog);
 
 	progress_hb = memnew(BackgroundProgress);
-
-	HBoxContainer *right_menu_hb = memnew(HBoxContainer);
-	menu_hb->add_child(right_menu_hb);
 
 	layout_dialog = memnew(EditorNameDialog);
 	gui_base->add_child(layout_dialog);
