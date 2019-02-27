@@ -28,6 +28,8 @@
 /* SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.                */
 /*************************************************************************/
 
+#ifdef SOCKET_POSIX_ENABLED
+
 #include "net_socket_posix.h"
 
 #if defined(UNIX_ENABLED)
@@ -614,3 +616,5 @@ Ref<NetSocket> NetSocketPosix::accept(IP_Address &r_ip, uint16_t &r_port) {
 	ns->set_blocking_enabled(false);
 	return Ref<NetSocket>(ns);
 }
+
+#endif

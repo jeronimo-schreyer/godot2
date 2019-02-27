@@ -321,6 +321,15 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 
 	// Attempt with a user-defined main pack first
 
+	if (OS::get_singleton()->get_resource_dir() != "") {
+		// OS will call ProjectSettings->get_resource_path which will be empty if not overridden!
+		// If the OS would rather use a specific location, then it will not be empty.
+		resource_path = OS::get_singleton()->get_resource_dir().replace("\\", "/");
+		if (resource_path != "" && resource_path[resource_path.length() - 1] == '/') {
+			resource_path = resource_path.substr(0, resource_path.length() - 1); // chop end
+		}
+	};
+	
 	if (p_main_pack != "") {
 
 		bool ok = _load_resource_pack(p_main_pack);
