@@ -376,6 +376,8 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		I = I->next();
 	}
 
+	OS::get_singleton()->set_cmdline(execpath, args);
+
 	I = args.front();
 
 	String video_driver = "";
