@@ -344,6 +344,17 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 	// (so both 'mygame.bin' and 'mygame' should be able to find 'mygame.pck').
 
 	String exec_path = OS::get_singleton()->get_executable_path();
+	resource_path = OS::get_singleton()->get_resource_dir();
+	if (resource_path != "") {
+		// OS will call ProjectSettings->get_resource_path which will be empty if not overridden!
+		// If the OS would rather use a specific location, then it will not be empty.
+		resource_path = OS::get_singleton()->get_resource_dir().replace("\\", "/");
+		if (resource_path != "" && resource_path[resource_path.length() - 1] == '/') {
+			resource_path = resource_path.substr(0, resource_path.length() - 1); // chop end
+		}
+
+		exec_path = resource_path + "/" + exec_path;
+	}
 
 	if (exec_path != "") {
 		bool found = false;
@@ -381,13 +392,7 @@ Error ProjectSettings::_setup(const String &p_path, const String &p_main_pack, b
 
 	// Try to use the filesystem for files, according to OS. (only Android -when reading from pck- and iOS use this)
 
-	if (OS::get_singleton()->get_resource_dir() != "") {
-		// OS will call ProjectSettings->get_resource_path which will be empty if not overridden!
-		// If the OS would rather use a specific location, then it will not be empty.
-		resource_path = OS::get_singleton()->get_resource_dir().replace("\\", "/");
-		if (resource_path != "" && resource_path[resource_path.length() - 1] == '/') {
-			resource_path = resource_path.substr(0, resource_path.length() - 1); // chop end
-		}
+	if (resource_path != "") {
 
 		Error err = _load_settings_text_or_binary("res://project.godot", "res://project.binary");
 		if (err == OK) {

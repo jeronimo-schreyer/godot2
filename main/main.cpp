@@ -752,6 +752,24 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		FileAccess::make_default<FileAccessNetwork>(FileAccess::ACCESS_RESOURCES);
 	}
 
+#ifdef TOOLS_ENABLED
+	if (editor) {
+		Engine::get_singleton()->set_editor_hint(true);
+		main_args.push_back("--editor");
+		if (!init_windowed) {
+			init_maximized = true;
+			video_mode.maximized = true;
+		}
+	}
+
+	if (!project_manager) {
+		// Determine if the project manager should be requested
+		project_manager = main_args.size() == 0 && !found_project;
+	}
+#endif
+
+	OS::get_singleton()->set_cmdline(execpath, main_args);
+
 	if (globals->setup(project_path, main_pack, upwards) == OK) {
 #ifdef TOOLS_ENABLED
 		found_project = true;
@@ -833,22 +851,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 		OS::get_singleton()->add_logger(memnew(RotatedFileLogger(base_path, max_files)));
 	}
 
-#ifdef TOOLS_ENABLED
-	if (editor) {
-		Engine::get_singleton()->set_editor_hint(true);
-		main_args.push_back("--editor");
-		if (!init_windowed) {
-			init_maximized = true;
-			video_mode.maximized = true;
-		}
-	}
-
-	if (!project_manager) {
-		// Determine if the project manager should be requested
-		project_manager = main_args.size() == 0 && !found_project;
-	}
-#endif
-
 	if (main_args.size() == 0 && String(GLOBAL_DEF("application/run/main_scene", "")) == "") {
 #ifdef TOOLS_ENABLED
 		if (!editor && !project_manager) {
@@ -877,8 +879,6 @@ Error Main::setup(const char *execpath, int argc, char *argv[], bool p_second_ph
 
 	if (quiet_stdout)
 		_print_line_enabled = false;
-
-	OS::get_singleton()->set_cmdline(execpath, main_args);
 
 	GLOBAL_DEF("rendering/quality/driver/driver_name", "GLES3");
 	ProjectSettings::get_singleton()->set_custom_property_info("rendering/quality/driver/driver_name", PropertyInfo(Variant::STRING, "rendering/quality/driver/driver_name", PROPERTY_HINT_ENUM, "GLES2,GLES3"));
