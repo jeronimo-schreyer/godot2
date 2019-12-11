@@ -30,6 +30,7 @@
 
 #include "net_socket_posix.h"
 
+#ifdef MODULE_UNIX_SOCKET_ENABLED
 #if defined(UNIX_ENABLED)
 
 #include <errno.h>
@@ -614,3 +615,5 @@ Ref<NetSocket> NetSocketPosix::accept(IP_Address &r_ip, uint16_t &r_port) {
 	ns->set_blocking_enabled(false);
 	return Ref<NetSocket>(ns);
 }
+
+#endif
