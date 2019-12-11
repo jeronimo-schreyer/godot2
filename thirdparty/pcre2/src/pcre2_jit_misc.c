@@ -88,8 +88,11 @@ int i;
 
 for (i = 0; i < JIT_NUMBER_OF_COMPILE_MODES; i++)
   {
+	  
+#ifndef SUPPORT_JIT
   if (functions->executable_funcs[i] != NULL)
     sljit_free_code(functions->executable_funcs[i]);
+#endif
   PRIV(jit_free_rodata)(functions->read_only_data_heads[i], allocator_data);
   }
 

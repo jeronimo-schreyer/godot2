@@ -189,8 +189,10 @@ static SLJIT_INLINE struct chunk_header* alloc_chunk(sljit_uw size)
 	retval->executable = mmap(NULL, size, PROT_READ | PROT_EXEC, MAP_SHARED, fd, 0);
 
 	if (retval->executable == MAP_FAILED) {
+#ifndef SUPPORT_JIT
 		munmap(retval, size);
 		close(fd);
+#endif
 		return NULL;
 	}
 
@@ -200,12 +202,14 @@ static SLJIT_INLINE struct chunk_header* alloc_chunk(sljit_uw size)
 
 static SLJIT_INLINE void free_chunk(void *chunk, sljit_uw size)
 {
+#ifndef SUPPORT_JIT
 	struct chunk_header *header = ((struct chunk_header *)chunk) - 1;
 
 	int fd = header->fd;
 	munmap(header->executable, size);
 	munmap(header, size);
 	close(fd);
+#endif
 }
 
 /* --------------------------------------------------------------------- */

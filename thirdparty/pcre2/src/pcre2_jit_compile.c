@@ -14051,7 +14051,10 @@ else
     {
     /* This case is highly unlikely since we just recently
     freed a lot of memory. Not impossible though. */
+	
+#ifndef SUPPORT_JIT
     sljit_free_code(executable_func);
+#endif
     PRIV(jit_free_rodata)(common->read_only_data_head, compiler->allocator_data);
     return PCRE2_ERROR_NOMEMORY;
     }
