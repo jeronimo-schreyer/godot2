@@ -285,9 +285,7 @@ SLJIT_API_FUNC_ATTRIBUTE void SLJIT_FUNC sljit_free_stack(struct sljit_stack *st
 	VirtualFree((void*)stack->min_start, 0, MEM_RELEASE);
 #else
 	
-#ifndef SUPPORT_JIT
 	munmap((void*)stack->min_start, stack->end - stack->min_start);
-#endif
 	
 #endif
 	SLJIT_FREE(stack, allocator_data);

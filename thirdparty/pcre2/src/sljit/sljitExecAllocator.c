@@ -160,9 +160,7 @@ static SLJIT_INLINE void* alloc_chunk(sljit_uw size)
 
 static SLJIT_INLINE void free_chunk(void *chunk, sljit_uw size)
 {
-#ifndef SUPPORT_JIT
 	munmap(chunk, size);
-#endif
 }
 
 #endif
