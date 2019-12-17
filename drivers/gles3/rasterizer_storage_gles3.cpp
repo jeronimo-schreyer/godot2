@@ -899,7 +899,7 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 		if (texture->type == VS::TEXTURE_TYPE_2D || texture->type == VS::TEXTURE_TYPE_CUBEMAP) {
 
 			if (texture->compressed) {
-				glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 				int bw = w;
 				int bh = h;
@@ -916,7 +916,7 @@ void RasterizerStorageGLES3::texture_set_data(RID p_texture, const Ref<Image> &p
 			}
 		} else {
 			if (texture->compressed) {
-				glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
 				int bw = w;
 				int bh = h;
@@ -1021,7 +1021,7 @@ void RasterizerStorageGLES3::texture_set_data_partial(RID p_texture, const Ref<I
 
 	if (texture->type == VS::TEXTURE_TYPE_2D || texture->type == VS::TEXTURE_TYPE_CUBEMAP) {
 		if (texture->compressed) {
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glCompressedTexSubImage2D(blit_target, p_dst_mip, dst_x, dst_y, src_w, src_h, internal_format, src_data_size, &read[src_ofs]);
 
 		} else {
@@ -1031,7 +1031,7 @@ void RasterizerStorageGLES3::texture_set_data_partial(RID p_texture, const Ref<I
 		}
 	} else {
 		if (texture->compressed) {
-			glPixelStorei(GL_UNPACK_ALIGNMENT, 4);
+			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 			glCompressedTexSubImage3D(blit_target, p_dst_mip, dst_x, dst_y, p_layer, src_w, src_h, 1, format, src_data_size, &read[src_ofs]);
 		} else {
 			glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
@@ -1213,7 +1213,7 @@ Ref<Image> RasterizerStorageGLES3::texture_get_data(RID p_texture, int p_layer) 
 
 		if (texture->compressed) {
 
-			glPixelStorei(GL_PACK_ALIGNMENT, 4);
+			glPixelStorei(GL_PACK_ALIGNMENT, 1);
 			glGetCompressedTexImage(texture->target, i, &wb[ofs]);
 
 		} else {

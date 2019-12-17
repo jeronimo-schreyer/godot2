@@ -31,6 +31,7 @@
 #include "texture_loader_pvr.h"
 #include "PvrTcEncoder.h"
 #include "RgbaBitmap.h"
+#include "RgbBitmap.h"
 #include "core/os/file_access.h"
 #include <string.h>
 #include <new>
@@ -187,30 +188,71 @@ String ResourceFormatPVR::get_resource_type(const String &p_path) const {
 	return "";
 }
 
-static void _compress_pvrtc4(Image *p_img) {
+static void _compress_rgba(PoolVector<uint8_t>::Write const &p_wr, PoolVector<uint8_t>::Read const &p_r,
+	Ref<Image> const &p_img, Ref<Image> const &p_new_img) {
 
+	for (int i = 0, mipmaps_count = p_new_img->get_mipmap_count(); i <= mipmaps_count; i++) {
+
+		int ofs, size, w, h;
+		p_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
+		Javelin::RgbaBitmap bm(w, h);
+
+		for (int j = 0, corrected_size = size >> 2; j < corrected_size; j++) {
+
+			Javelin::ColorRgba<unsigned char> *dp = bm.GetData();
+			new (dp + j) Javelin::ColorRgba<unsigned char>(p_r[ofs + 4 * j], p_r[ofs + 4 * j + 1], 
+				p_r[ofs + 4 * j + 2], p_r[ofs + 4 * j + 3]);
+		}
+
+		p_new_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
+		Javelin::PvrTcEncoder::EncodeRgba4Bpp(&p_wr[ofs], bm);
+	}
+}
+
+static void _compress_rgb(PoolVector<uint8_t>::Write const &p_wr, PoolVector<uint8_t>::Read const &p_r,
+	Ref<Image> const &p_img, Ref<Image> const &p_new_img) {
+
+	for (int i = 0, mipmaps_count = p_new_img->get_mipmap_count(); i <= mipmaps_count; i++) {
+
+		int ofs, size, w, h;
+		p_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
+		Javelin::RgbBitmap bm(w, h);
+
+		for (int j = 0, corrected_size = size / 3; j < corrected_size; j++) {
+
+			Javelin::ColorRgb<unsigned char> *dp = bm.GetData();
+			new (dp + j) Javelin::ColorRgb<unsigned char>(p_r[ofs + 3 * j], p_r[ofs + 3 * j + 1], 
+				p_r[ofs + 3 * j + 2]);
+		}
+
+		p_new_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
+		Javelin::PvrTcEncoder::EncodeRgb4Bpp(&p_wr[ofs], bm);
+	}
+}
+
+static void _compress_pvrtc4(Image *p_img) {
+	
 	Ref<Image> img = p_img->duplicate();
 
-	bool make_mipmaps = false;
-	if (!img->is_size_po2() || img->get_width() != img->get_height()) {
-		make_mipmaps = img->has_mipmaps();
-		img->resize_to_po2(true);
-	}
-	img->convert(Image::FORMAT_RGBA8);
-	if (!img->has_mipmaps() && make_mipmaps)
-		img->generate_mipmaps();
-
+	bool has_mipmaps = img->has_mipmaps();
 	bool use_alpha = img->detect_alpha();
+
+	img->convert(use_alpha ? Image::FORMAT_RGBA8 : Image::FORMAT_RGB8);
 
 	Ref<Image> new_img;
 	new_img.instance();
+<<<<<<< HEAD
 	new_img->create(img->get_width(), img->get_height(), img->has_mipmaps(), use_alpha ? Image::FORMAT_PVRTC4A : Image::FORMAT_PVRTC4);
+=======
+	new_img->create(img->get_width(), img->get_height(), has_mipmaps, use_alpha ? Image::FORMAT_PVRTC4A : Image::FORMAT_PVRTC4);
+>>>>>>> 7b94ce30fe... PVRTC proper support, crashes fix, compression fix, etc.
 
 	PoolVector<uint8_t> data = new_img->get_data();
 	{
 		PoolVector<uint8_t>::Write wr = data.write();
 		PoolVector<uint8_t>::Read r = img->get_data().read();
 
+<<<<<<< HEAD
 		for (int i = 0; i <= new_img->get_mipmap_count(); i++) {
 
 			int ofs, size, w, h;
@@ -223,6 +265,12 @@ static void _compress_pvrtc4(Image *p_img) {
 			}
 			new_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
 			Javelin::PvrTcEncoder::EncodeRgba4Bpp(&wr[ofs], bm);
+=======
+		if(use_alpha) {
+			_compress_rgba(wr, r, img, new_img);
+		} else {
+			_compress_rgb(wr, r, img, new_img);
+>>>>>>> 7b94ce30fe... PVRTC proper support, crashes fix, compression fix, etc.
 		}
 	}
 

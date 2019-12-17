@@ -196,13 +196,21 @@ public:
 
 void EditorExportPlatformIOS::get_preset_features(const Ref<EditorExportPreset> &p_preset, List<String> *r_features) {
 
-	String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
-	if (driver == "GLES2") {
-		r_features->push_back("etc");
-	} else if (driver == "GLES3") {
-		r_features->push_back("etc2");
-		if (ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2")) {
+	bool pvrtc_supported = ProjectSettings::get_singleton()->get("rendering/vram_compression/import_pvrtc");
+	if(pvrtc_supported)
+	{
+		r_features->push_back("pvrtc");
+	}
+	else
+	{
+		String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
+		if (driver == "GLES2") {
 			r_features->push_back("etc");
+		} else if (driver == "GLES3") {
+			r_features->push_back("etc2");
+			if (ProjectSettings::get_singleton()->get("rendering/quality/driver/fallback_to_gles2")) {
+				r_features->push_back("etc");
+			}
 		}
 	}
 
@@ -1147,11 +1155,9 @@ bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset
 		}
 	}
 
-	String etc_error = test_etc2();
-	if (etc_error != String()) {
-		valid = false;
-		err += etc_error;
-	}
+	String error = test_pvrtc();
+	String empty = String();
+	valid = error == empty || (err += error, error = test_etc2(), err += error, error == empty);
 
 	if (!err.empty())
 		r_error = err;

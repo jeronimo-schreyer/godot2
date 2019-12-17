@@ -755,6 +755,11 @@ void Image::resize_to_po2(bool p_square) {
 			return; //nothing to do
 	}
 
+	if (p_square) {
+		w = MAX(w, h);
+		h = w;
+	}
+
 	resize(w, h);
 }
 
@@ -1627,7 +1632,7 @@ void Image::create(const char **p_xpm) {
 		if (value < DETECT_ALPHA_MIN_THRESHOLD)        \
 			bit = true;                                \
 		else if (value < DETECT_ALPHA_MAX_THRESHOLD) { \
-                                                       \
+													   \
 			detected = true;                           \
 			break;                                     \
 		}                                              \
@@ -1637,7 +1642,7 @@ void Image::create(const char **p_xpm) {
 	{                             \
 		uint8_t value = m_value;  \
 		if (value > 0) {          \
-                                  \
+								  \
 			detected = true;      \
 			break;                \
 		}                         \

@@ -228,17 +228,28 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 	f->store_8('T'); //godot streamable texture
 
 	bool resize_to_po2 = false;
+	bool is_pvrtc = (p_vram_compression == Image::COMPRESS_PVRTC2 || p_vram_compression == Image::COMPRESS_PVRTC4);
 
-	if (p_compress_mode == COMPRESS_VIDEO_RAM && p_force_po2_for_compressed && (p_mipmaps || p_texture_flags & Texture::FLAG_REPEAT)) {
+	int width = p_image->get_width();
+	int new_width = width;
+	int height = p_image->get_height();
+	int new_height = height;
+
+	if (p_compress_mode == COMPRESS_VIDEO_RAM && force_po2_for_compressed && ((!is_pvrtc && (p_mipmaps || p_texture_flags & Texture::FLAG_REPEAT))
+		|| (is_pvrtc && (!p_image->is_size_po2() || (p_image->get_width() != p_image->get_height()))))) {
+			
 		resize_to_po2 = true;
-		f->store_16(next_power_of_2(p_image->get_width()));
-		f->store_16(p_image->get_width());
-		f->store_16(next_power_of_2(p_image->get_height()));
-		f->store_16(p_image->get_height());
+		new_width = is_pvrtc ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_width());
+		f->store_16(new_width);
+		f->store_16(width);
+		new_height = is_pvrtc ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_height());
+		f->store_16(new_height);
+		f->store_16(height);
 	} else {
-		f->store_16(p_image->get_width());
+
+		f->store_16(width);
 		f->store_16(0);
-		f->store_16(p_image->get_height());
+		f->store_16(height);
 		f->store_16(0);
 	}
 	f->store_32(p_texture_flags);
@@ -292,6 +303,7 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 
 		} break;
 		case COMPRESS_LOSSY: {
+
 			Ref<Image> image = p_image->duplicate();
 			if (p_mipmaps) {
 				image->generate_mipmaps();
@@ -323,7 +335,7 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 
 			Ref<Image> image = p_image->duplicate();
 			if (resize_to_po2) {
-				image->resize_to_po2();
+				image->resize(new_width, new_height);
 			}
 			if (p_mipmaps) {
 				image->generate_mipmaps(p_force_normal);

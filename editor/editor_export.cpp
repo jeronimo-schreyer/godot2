@@ -1161,6 +1161,17 @@ void EditorExport::add_export_preset(const Ref<EditorExportPreset> &p_preset, in
 		export_presets.insert(p_at_pos, p_preset);
 }
 
+String EditorExportPlatform::test_pvrtc() const {
+
+	bool pvrtc_supported = ProjectSettings::get_singleton()->get("rendering/vram_compression/import_pvrtc");
+
+	if(!pvrtc_supported) {
+		return TTR("Target platform requires 'PVRTC' texture compression. Enable 'Import Pvrtc' in Project Settings.");
+	}
+
+	return  String();
+}
+
 String EditorExportPlatform::test_etc2() const {
 
 	String driver = ProjectSettings::get_singleton()->get("rendering/quality/driver/driver_name");
