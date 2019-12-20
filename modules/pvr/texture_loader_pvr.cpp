@@ -197,7 +197,7 @@ static void _compress_rgba(PoolVector<uint8_t>::Write const &p_wr, PoolVector<ui
 		p_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
 		Javelin::RgbaBitmap bm(w, h);
 
-		for (int j = 0, corrected_size = size >> 2; j < corrected_size; j++) {
+		for (int j = 0, corrected_size = size >> 2; j < corrected_size; ++j) {
 
 			Javelin::ColorRgba<unsigned char> *dp = bm.GetData();
 			new (dp + j) Javelin::ColorRgba<unsigned char>(p_r[ofs + 4 * j], p_r[ofs + 4 * j + 1], 
@@ -218,7 +218,7 @@ static void _compress_rgb(PoolVector<uint8_t>::Write const &p_wr, PoolVector<uin
 		p_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
 		Javelin::RgbBitmap bm(w, h);
 
-		for (int j = 0, corrected_size = size / 3; j < corrected_size; j++) {
+		for (int j = 0, corrected_size = size / 3; j < corrected_size; ++j) {
 
 			Javelin::ColorRgb<unsigned char> *dp = bm.GetData();
 			new (dp + j) Javelin::ColorRgb<unsigned char>(p_r[ofs + 3 * j], p_r[ofs + 3 * j + 1], 

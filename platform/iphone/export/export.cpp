@@ -1155,8 +1155,9 @@ bool EditorExportPlatformIOS::can_export(const Ref<EditorExportPreset> &p_preset
 		}
 	}
 
+	static const String empty;
+
 	String error = test_pvrtc();
-	String empty = String();
 	valid = error == empty || (err += error, error = test_etc2(), err += error, error == empty);
 
 	if (!err.empty())

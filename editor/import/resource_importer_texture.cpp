@@ -228,21 +228,21 @@ void ResourceImporterTexture::_save_stex(const Ref<Image> &p_image, const String
 	f->store_8('T'); //godot streamable texture
 
 	bool resize_to_po2 = false;
-	bool is_pvrtc = (p_vram_compression == Image::COMPRESS_PVRTC2 || p_vram_compression == Image::COMPRESS_PVRTC4);
 
 	int width = p_image->get_width();
 	int new_width = width;
 	int height = p_image->get_height();
 	int new_height = height;
 
-	if (p_compress_mode == COMPRESS_VIDEO_RAM && force_po2_for_compressed && ((!is_pvrtc && (p_mipmaps || p_texture_flags & Texture::FLAG_REPEAT))
-		|| (is_pvrtc && (!p_image->is_size_po2() || (p_image->get_width() != p_image->get_height()))))) {
-			
+	if (p_compress_mode == COMPRESS_VIDEO_RAM && ((force_po2_for_compressed && (p_mipmaps || p_texture_flags & Texture::FLAG_REPEAT))
+		|| (force_po2_square_for_compressed && (!p_image->is_size_po2() || (p_image->get_width() != p_image->get_height()))))) {
+			String tmp = (force_po2_square_for_compressed ? "po2" : "po2_sq");
+			print_line("HOW: " + tmp);
 		resize_to_po2 = true;
-		new_width = is_pvrtc ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_width());
+		new_width = force_po2_square_for_compressed ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_width());
 		f->store_16(new_width);
 		f->store_16(width);
-		new_height = is_pvrtc ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_height());
+		new_height = force_po2_square_for_compressed ? closest_power_of_2(MAX(width, height)) : next_power_of_2(p_image->get_height());
 		f->store_16(new_height);
 		f->store_16(height);
 	} else {
@@ -509,7 +509,7 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 		}
 
 		if (can_bptc || can_s3tc) {
-			_save_stex(image, p_save_path + ".s3tc.stex", compress_mode, lossy, can_bptc ? Image::COMPRESS_BPTC : Image::COMPRESS_S3TC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, false);
+			_save_stex(image, p_save_path + ".s3tc.stex", compress_mode, lossy, can_bptc ? Image::COMPRESS_BPTC : Image::COMPRESS_S3TC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, false, false);
 			r_platform_variants->push_back("s3tc");
 			formats_imported.push_back("s3tc");
 			ok_on_pc = true;
@@ -517,20 +517,20 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 
 		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc2")) {
 
-			_save_stex(image, p_save_path + ".etc2.stex", compress_mode, lossy, Image::COMPRESS_ETC2, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, true);
+			_save_stex(image, p_save_path + ".etc2.stex", compress_mode, lossy, Image::COMPRESS_ETC2, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, true, false);
 			r_platform_variants->push_back("etc2");
 			formats_imported.push_back("etc2");
 		}
 
 		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_etc")) {
-			_save_stex(image, p_save_path + ".etc.stex", compress_mode, lossy, Image::COMPRESS_ETC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, true);
+			_save_stex(image, p_save_path + ".etc.stex", compress_mode, lossy, Image::COMPRESS_ETC, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, true, false);
 			r_platform_variants->push_back("etc");
 			formats_imported.push_back("etc");
 		}
 
 		if (ProjectSettings::get_singleton()->get("rendering/vram_compression/import_pvrtc")) {
 
-			_save_stex(image, p_save_path + ".pvrtc.stex", compress_mode, lossy, Image::COMPRESS_PVRTC4, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, true);
+			_save_stex(image, p_save_path + ".pvrtc.stex", compress_mode, lossy, Image::COMPRESS_PVRTC4, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, false, true);
 			r_platform_variants->push_back("pvrtc");
 			formats_imported.push_back("pvrtc");
 		}
@@ -540,7 +540,7 @@ Error ResourceImporterTexture::import(const String &p_source_file, const String 
 		}
 	} else {
 		//import normally
-		_save_stex(image, p_save_path + ".stex", compress_mode, lossy, Image::COMPRESS_S3TC /*this is ignored */, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, false);
+		_save_stex(image, p_save_path + ".stex", compress_mode, lossy, Image::COMPRESS_S3TC /*this is ignored */, mipmaps, tex_flags, stream, detect_3d, detect_srgb, force_rgbe, detect_normal, force_normal, false, false);
 	}
 
 	if (r_metadata) {
