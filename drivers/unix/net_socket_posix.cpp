@@ -30,7 +30,8 @@
 
 #include "net_socket_posix.h"
 
-#ifdef MODULE_UNIX_SOCKET_ENABLED
+// Some platforms don't support this feature
+#ifndef UNIX_SOCKET_UNAVAILABLE
 #if defined(UNIX_ENABLED)
 
 #include <errno.h>
