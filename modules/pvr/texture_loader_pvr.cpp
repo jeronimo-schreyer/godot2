@@ -241,36 +241,17 @@ static void _compress_pvrtc4(Image *p_img) {
 
 	Ref<Image> new_img;
 	new_img.instance();
-<<<<<<< HEAD
-	new_img->create(img->get_width(), img->get_height(), img->has_mipmaps(), use_alpha ? Image::FORMAT_PVRTC4A : Image::FORMAT_PVRTC4);
-=======
 	new_img->create(img->get_width(), img->get_height(), has_mipmaps, use_alpha ? Image::FORMAT_PVRTC4A : Image::FORMAT_PVRTC4);
->>>>>>> 7b94ce30fe... PVRTC proper support, crashes fix, compression fix, etc.
 
 	PoolVector<uint8_t> data = new_img->get_data();
 	{
 		PoolVector<uint8_t>::Write wr = data.write();
 		PoolVector<uint8_t>::Read r = img->get_data().read();
 
-<<<<<<< HEAD
-		for (int i = 0; i <= new_img->get_mipmap_count(); i++) {
-
-			int ofs, size, w, h;
-			img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
-			Javelin::RgbaBitmap bm(w, h);
-			for (int j = 0; j < size / 4; j++) {
-				Javelin::ColorRgba<unsigned char> *dp = bm.GetData();
-				/* red and Green colors are swapped.  */
-				new (dp) Javelin::ColorRgba<unsigned char>(r[ofs + 4 * j + 2], r[ofs + 4 * j + 1], r[ofs + 4 * j], r[ofs + 4 * j + 3]);
-			}
-			new_img->get_mipmap_offset_size_and_dimensions(i, ofs, size, w, h);
-			Javelin::PvrTcEncoder::EncodeRgba4Bpp(&wr[ofs], bm);
-=======
 		if(use_alpha) {
 			_compress_rgba(wr, r, img, new_img);
 		} else {
 			_compress_rgb(wr, r, img, new_img);
->>>>>>> 7b94ce30fe... PVRTC proper support, crashes fix, compression fix, etc.
 		}
 	}
 
