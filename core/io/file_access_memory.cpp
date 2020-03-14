@@ -60,8 +60,8 @@ bool FileAccessMemory::has_file(String  p_name) {
 		return false;
 
 	String name;
-	if (Globals::get_singleton())
-		name = Globals::get_singleton()->globalize_path(p_name);
+	if (ProjectSettings::get_singleton())
+		name = ProjectSettings::get_singleton()->globalize_path(p_name);
 	else
 		name = p_name;
 	
@@ -102,11 +102,11 @@ Error FileAccessMemory::_open(const String &p_path, int p_mode_flags) {
 	ERR_FAIL_COND_V(!files, ERR_FILE_NOT_FOUND);
 
 	String name;
-	if (Globals::get_singleton())
-		name = Globals::get_singleton()->globalize_path(p_path);
+
+	if (ProjectSettings::get_singleton())
+		name = ProjectSettings::get_singleton()->globalize_path(p_path);
 	else
 		name = p_path;
-	//	name = DirAccess::normalize_path(name);
 
 	Map<String, Vector<uint8_t> >::Element *E = files->find(name);
 	ERR_FAIL_COND_V(!E, ERR_FILE_NOT_FOUND);
