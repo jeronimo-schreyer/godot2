@@ -78,6 +78,8 @@ protected:
 
 public:
 	void flush() {
+		if (f.to_flush == 0)
+			return;
 
 		f.flush();
 	};

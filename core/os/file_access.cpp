@@ -99,11 +99,17 @@ FileAccess *FileAccess::open(const String &p_path, int p_mode_flags, Error *r_er
 
 	FileAccess *ret = NULL;
 
+#if (VERSION_MAJOR == 2)
+	String r_path = p_path.replace("res:/", Globals::get_singleton()->get_resource_path());
+#else
+	String r_path = p_path.replace("res:/", ProjectSettings::get_singleton()->get_resource_path());
+#endif
+
 	// try memory first
-	if (!(p_mode_flags & WRITE) && PackedData::get_singleton() && FileAccessMemory::has_file(p_path)) {
+	if (!(p_mode_flags & WRITE) && PackedData::get_singleton() && FileAccessMemory::has_file(r_path)) {
 
 		ret = memnew(FileAccessMemory);
-		Error err = ret->_open(p_path, p_mode_flags);
+		Error err = ret->_open(r_path, p_mode_flags);
 		if (r_error)
 			*r_error = err;
 		return ret;
